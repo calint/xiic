@@ -1,2 +1,2 @@
 # xiic
-shell script
+shell script for *nix
