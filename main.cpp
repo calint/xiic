@@ -1,59 +1,41 @@
-// forked from http://stackoverflow.com/questions/7469139/what-is-equivalent-to-getch-getche-in-linux
-#include <termios.h>
-#include <stdio.h>
-
-static struct termios old, news;
-
-/* Initialize new terminal i/o settings */
-void initTermios(int echo)
-{
-  tcgetattr(0, &old); /* grab old terminal i/o settings */
-  news = old; /* make new settings same as old settings */
-  news.c_lflag &= ~ICANON; /* disable buffered i/o */
-  news.c_lflag &= echo ? ECHO : ~ECHO; /* set echo mode */
-  tcsetattr(0, TCSANOW, &news); /* use these new terminal i/o settings now */
-}
-
-/* Restore old terminal i/o settings */
-void resetTermios(void)
-{
-  tcsetattr(0, TCSANOW, &old);
-}
-
-/* Read 1 character - echo defines echo mode */
-char getch_(int echo)
-{
-  char ch;
-  initTermios(echo);
-  ch = getchar();
-  resetTermios();
-  return ch;
-}
-
-/* Read 1 character without echo */
-char getch(void)
-{
-  return getch_(0);
-}
-
-/* Read 1 character with echo */
-char getche(void)
-{
-  return getch_(1);
-}
-
-/* Let's test it out */
+#include<termios.h>
+#include<stdio.h>
+#include<unistd.h>
+static struct termios termios_old;
 int main(void) {
-	char c;
+	tcgetattr(0,&termios_old);
+	struct termios t=termios_old;
+	t.c_lflag&=~ICANON;
+	t.c_lflag&=~ECHO;
+	tcsetattr(0,TCSANOW,&t);
+
+	char bs[]{"  \b"};
+	char buf[8];
+	const int bufn{sizeof buf};
+	char*bufp{buf};
+	char*bufe{buf+bufn};
 	while(true){
-		char c=getch();
+//		if(bufp==bufe)break;
+		char c=getchar();
 //		printf(" %d ",c);
-		putchar(c);
 		if(c=='\b'){
-			printf(" \b");
+			if(bufp==buf)continue;
+			bs[0]=c;
+			write(1,bs,sizeof bs);
+			bufp--;
 			continue;
+		}else{
+			if(bufp<bufe){
+				write(1,&c,1);
+				*bufp++=c;
+			}
 		}
 		if(c=='\n')break;
 	}
+	write(1,buf,bufp-buf);
+	tcsetattr(0,TCSANOW,&termios_old);
 	return 0;
 }
+
+
+// forked from http://stackoverflow.com/questions/7469139/what-is-equivalent-to-getch-getche-in-linux

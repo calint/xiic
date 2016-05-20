@@ -1,0 +1,1 @@
+g++ -oxiic main.cpp
