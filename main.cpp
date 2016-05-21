@@ -1,8 +1,10 @@
 #include<termios.h>
 #include<stdio.h>
 #include<unistd.h>
+#include<stdlib.h>
 static struct termios termios_old;
-int main(void) {
+int main(int argc,char**argv){
+	system("clear");
 	tcgetattr(0,&termios_old);
 	struct termios t=termios_old;
 	t.c_lflag&=~ICANON;
@@ -17,7 +19,7 @@ int main(void) {
 	while(true){
 //		if(bufp==bufe)break;
 		char c=getchar();
-//		printf(" %d ",c);
+		printf(" %d ",c);
 		if(c=='\b'){
 			if(bufp==buf)continue;
 			bs[0]=c;
